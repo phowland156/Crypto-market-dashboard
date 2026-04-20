@@ -85,13 +85,6 @@ def main():
 
     coin_id = coin["id"]
     
-    if "prev_coin" not in st.session_state:
-        st.session_state.prev_coin = coin_name
-
-    if st.session_state.prev_coin != coin_name:
-        st.session_state.time_label = "7 Day"
-        st.session_state.prev_coin = coin_name
-        st.rerun()
 
     # -------------------------
     # MARKET DATA
@@ -123,9 +116,18 @@ def main():
         "1 Month": 30,
         "1 Year": 365
     }
+    if "time_label" not in st.session_state:
+        st.session_state.time_label = "7 Day"
     
     if st.session_state.time_label not in time_options:
         st.session_state.time_label = "7 Day"
+        
+    if "prev_coin" not in st.session_state:
+        st.session_state.prev_coin = coin_name
+
+    if st.session_state.prev_coin != coin_name:
+        st.session_state.time_label = "7 Day"
+        st.session_state.prev_coin = coin_name
 
     time_label = st.sidebar.selectbox(
         "Time Range",
