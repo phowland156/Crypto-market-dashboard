@@ -3,7 +3,7 @@ import pandas as pd
 
 import streamlit as st
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=300)
 def get_history(coin, days):
 
     url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart"
@@ -28,7 +28,7 @@ def get_history(coin, days):
     return df
 
     # Coingecko API function to retreive data for zcash
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=60)
 def get_market_data(coin):
     url = "https://api.coingecko.com/api/v3/coins/markets"
     params = {"vs_currency": "usd", "ids": coin}
