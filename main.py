@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 from api.coingecko import get_history, get_market_data
 from components.cards import coin_card
