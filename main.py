@@ -152,9 +152,9 @@ def main():
     with st.spinner("Loading chart data..."):
         df = get_history(coin_id, time_range)
 
-    if df.empty:
-        st.warning("No chart data available right now.")
-        st.stop()
+    if df is None or df.empty:
+        st.warning("No data available for this selection")
+        df = None
 
     # -------------------------
     # TITLE
@@ -166,17 +166,18 @@ def main():
     # -------------------------
     # CHART
     # -------------------------
-    fig = create_price_chart(
-        df,
-        coin_name,
-        time_label,
-        change,
-        st.session_state.show_now,
-        st.session_state.show_avg,
-        st.session_state.show_high_low
-    )
+    if df is not None:
+        fig = create_price_chart(
+            df,
+            coin_name,
+            time_label,
+            change,
+            st.session_state.show_now,
+            st.session_state.show_avg,
+            st.session_state.show_high_low
+        )
 
-    st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
 
 if __name__ == "__main__":
