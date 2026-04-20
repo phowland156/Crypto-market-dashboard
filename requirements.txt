@@ -39,7 +39,7 @@ rpds-py==0.30.0
 six==1.17.0
 smmap==5.0.2
 streamlit==1.55.0
-streamlit-autorefresh==1.0.1
+streamlit-autorefresh
 streamlit-card==1.0.2
 tenacity==9.1.4
 toml==0.10.2

@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 
 from api.coingecko import get_history, get_market_data
@@ -28,12 +29,21 @@ def main():
 
     if "show_high_low" not in st.session_state:
         st.session_state.show_high_low = False
+        
+    if "last_refresh" not in st.session_state:
+        st.session_state.last_refresh = time.time()
+
+# refresh every 30 seconds
+    if time.time() - st.session_state.last_refresh > 30:
+        st.session_state.last_refresh = time.time()
+        st.rerun()
 
     load_css("static/css/style.css")
 
     st.title("Crypto Dashboard")
     st.divider()
 
+  
     # st_autorefresh(interval=30000)
 
     # -------------------------
