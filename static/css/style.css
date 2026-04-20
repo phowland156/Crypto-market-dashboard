@@ -1,0 +1,471 @@
+
+
+
+/*header elements */
+#crypo-market-dashboard{
+         color:rgb(255, 255, 255)!important;
+        font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        font-size: 40px;
+        font-weight: bold;
+        
+        
+}
+#market-overview
+{
+     color:rgb(255, 255, 255)!important;
+        font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        font-size: 40px;
+        font-weight: bold;
+}
+#price-chart
+{
+     color:rgb(255, 255, 255)!important;
+        font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        font-size: 32px;
+        font-weight: bold;
+}
+
+
+/* app background */
+[data-testid="stAppViewContainer"] {
+    background: radial-gradient(circle at top left, #1a1a2e, #0f172a 70%);
+    color: #e5e7eb;
+}
+
+/* MAIN CONTENT AREA */
+.main .block-container {
+    padding: 1rem 1.5rem !important;
+}
+
+/* metric cards */
+[data-testid="stMetric"],[data-testid="stPlotlyChart"] {
+    background: transparent !important;
+    padding: 15px;
+    border-radius: 12px;
+    border: none !important;
+}
+
+/* chart containers
+{
+    background-color: #1E1E1E;
+    height: 320px !important;
+
+    border-radius: 10px;
+    padding: 6px;
+} */
+
+/* sidebar */
+/* sidebar base */
+[data-testid="stSidebar"] {
+    background: #0f172a !important;
+    color: white !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    position: relative !important;
+    overflow: visible !important;
+
+}
+
+
+[data-testid="stSidebarContent"] {
+    padding: 1rem;
+    background: #18243f;
+}
+
+[data-testid="stSelectbox"] {
+    color: white;
+}
+
+/* dropdown container */
+div[data-baseweb="popover"] {
+    z-index: 999999 !important;
+    position: fixed !important;
+
+}
+
+/* dropdown menu */
+div[data-baseweb="menu"] {
+    background: #0f172a !important;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+
+/* dropdown items */
+div[data-baseweb="menu"] li {
+    padding: 10px 12px !important;
+    color: white !important;
+    line-height: 1.3 !important;
+}
+
+
+
+.stApp {
+    overflow-x: visible !important;
+}
+
+
+
+.st-an{
+    background: rgba(255,255,255,0.05);
+    cursor: pointer;
+}
+.st-bn{
+    color: white;
+}
+
+
+
+
+/* CARD = visual layer UNDER button */
+.coin-card {
+    height: 89px;
+    width: 89px;
+    margin: auto;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+
+    transition: all 0.2s ease !important;
+    position: relative;
+    z-index: 5;
+}
+
+.coin-wrapper {
+    position: relative;
+    width: 89px;
+    height: 89px;
+    margin: 1rem;
+
+}
+
+/* hover triggered by button → affects card */
+/* [data-testid="stBaseButton-secondary"]:hover + div .coin-card,
+[data-testid="stBaseButton-secondary"]:hover + .coin-card {
+    transform: translateY(-6px) scale(1.04);
+    border-color: #16c784;
+
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.35),
+        0 0 12px rgba(22, 199, 132, 0.35),
+        0 0 28px rgba(22, 199, 132, 0.15);
+}
+
+/* click animation */
+/* [data-testid="stBaseButton-secondary"]:active + div .coin-card,
+[data-testid="stBaseButton-secondary"]:active + .coin-card {
+    transform: translateY(-2px) scale(0.98);
+} */ 
+.coin-wrapper:active .coin-card {
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* [data-testid="stBaseButton-secondary"] {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+[data-testid="stBaseButton-secondary"] button {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+}
+[data-testid="stBaseButton-secondary"] button:hover,
+[data-testid="stBaseButton-secondary"] button:active {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    filter: none !important;
+} */
+/* SELECTED STATE */
+.coin-selected {
+    border: 1px solid #16c784 !important;
+    box-shadow: 0 0 18px rgba(22, 199, 132, 0.7),
+                0 0 40px rgba(22, 199, 132, 0.25);
+}
+
+/* IMAGE */
+.coin-logo {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    margin-bottom: 6px;
+}
+
+/* NAME */
+.coin-name {
+    font-size: 0.85rem;
+    color: #d1d5db;
+}
+
+
+[data-testid="stBaseButton-secondary"]
+{
+    position: absolute;
+    z-index: 10;
+    top: 15px;
+    height: 89px;
+    width: 89px;
+    
+    display:block;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    opacity: 0;
+    transition: all 0.2s ease;
+   
+}
+/* [data-testid="stBaseButton-secondary"]:hover{
+    border: #16c784 !important;
+} */
+
+/* metric cards */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 1rem !important;
+
+}
+/* metric value text scaling */
+[data-testid="stMetricValue"] {
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    font-weight: 600;
+}
+
+/* label */
+[data-testid="stMetricLabel"] {
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+
+
+/* card container */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;   /* 🔥 increase spacing */
+    margin: 1rem 0 2rem 0;
+}
+
+/* metric card */
+.metric-card{
+     display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: 1rem;
+    min-height: 110px;
+
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+
+    gap: 0.4rem; 
+
+}
+
+
+
+
+/* metric title */
+.metric-title {
+     font-size: 0.75rem;
+    color: #9ca3af;
+    letter-spacing: 0.5px;
+}
+
+/* metric value */
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f9fafb;
+}
+.metric-change {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.metric-positive {
+    color: #16c784;
+    text-shadow: 0 0 6px rgba(22, 199, 132, 0.4);
+}
+
+.metric-negative {
+    color: #ea3943;
+    text-shadow: 0 0 6px rgba(234, 57, 67, 0.4);
+}
+
+
+
+/* NEVER BREAK STREAMLIT FLOW */
+
+[data-testid="column"] {
+    padding: 0.15rem !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    
+}
+
+[data-testid="column"]:hover .coin-card {
+    transform: translateY(-6px) scale(1.04) !important;
+
+    background: rgba(255,255,255,0.08) !important;
+    border-color: #16c784 !important;
+
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.45),
+        0 0 14px rgba(22, 199, 132, 0.45),
+        0 0 30px rgba(22, 199, 132, 0.25) !important;
+}
+
+
+
+
+/* [data-testid="column"]:hover .coin-card {
+    transform: translateY(-6px) scale(1.04);
+    border-color: #16c784;
+
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.35),
+        0 0 12px rgba(22, 199, 132, 0.35),
+        0 0 28px rgba(22, 199, 132, 0.15);
+} */
+
+[data-testid="column"]:active .coin-card {
+    transform: translateY(-2px) scale(0.98);
+
+}
+
+
+
+[data-testid="stHorizontalBlock"] {
+    gap: 1.5rem !important;
+    /* margin-left: 125px; */
+}
+.block-container {
+    max-width: 650px;
+    margin: 0 auto !important;
+}
+
+/* button[kind="secondary"] {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: #d1d5db !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    font-weight: 500;
+}
+
+button[kind="secondary"]:hover {
+    border-color: #16c784 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 0 10px rgba(22, 199, 132, 0.2);
+}
+
+button[kind="secondary"]:active {
+    transform: scale(0.97);
+} */
+
+/* .st-cz{
+    background-color: #16c784 !important;
+} */
+.st-cz{
+    background-color: #16c784 !important;
+
+}
+/* slect box text color */
+.st-emotion-cache-1sqsikw{
+    color: #ffffff;
+}
+
+/* drop down arrow */
+.st-ci {
+    fill: rgb(32, 179, 64);
+}
+
+/* drop down menu */
+
+
+.st-emotion-cache-qiev7j{
+    color: white;
+}
+
+.st-ct{
+    color: #16c784 !important;
+}
+
+
+[data-testId="stMarkdownContainer"]{
+    color: white;
+}
+
+[data-testid="stLayoutWrapper"]{
+    align-items: center;
+    justify-content: center;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+
+
+
+
+
+
+/* .block-container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+} */
+
+/* reduce vertical gaps between elements */
+section.main > div {
+    gap: 1.2rem !important;
+}
+
+
+
+h1, h2, h3 {
+    color: #f9fafb;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+p, span, label {
+    color: #e4e4e4;
+}
+
+
+
+.stDivider {
+    opacity: 0.1;
+    margin-top: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
+    color: #d1d5db;
+
+}
+
+
+
+/* hover effect triggered from column */
