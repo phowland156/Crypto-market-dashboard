@@ -35,7 +35,7 @@ def main():
     st.title("Crypto Dashboard")
     st.divider()
 
-    st_autorefresh(interval=30000)
+    # st_autorefresh(interval=30000)
 
     # -------------------------
     # COINS
