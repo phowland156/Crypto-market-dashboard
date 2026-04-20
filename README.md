@@ -69,25 +69,6 @@ Future Improvements
 - Dark/light theme toggle
 - User authentication + saved portfolios
 
-Project Struct.
-----------------
-crypto-market-dashboard/
-│
-├── main.py
-├── api/
-│   └── coingecko.py
-├── components/
-│   ├── cards.py
-│   ├── charts.py
-│   └── metrics.py
-├── utils/
-│   └── helpers.py
-├── static/
-│   └── css/
-│       └── style.css
-├── requirements.txt
-└── README.md
-
 
 Instillation
 ---------------
