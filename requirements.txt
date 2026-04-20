@@ -22,7 +22,6 @@ plotly==6.6.0
 protobuf==6.33.5
 pyarrow==23.0.1
 pydeck==0.9.1
-
 referencing==0.37.0
 requests==2.32.5
 rpds-py==0.30.0
