@@ -37,6 +37,14 @@ def main():
     if time.time() - st.session_state.last_refresh > 30:
         st.session_state.last_refresh = time.time()
         st.rerun()
+        
+    if "prev_coin" not in st.session_state:
+        st.session_state.prev_coin = coin_name
+
+    if st.session_state.prev_coin != coin_name:
+        st.session_state.time_label = "7 Day"
+        st.session_state.prev_coin = coin_name
+        st.rerun()
 
     load_css("static/css/style.css")
 
