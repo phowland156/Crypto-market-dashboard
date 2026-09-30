@@ -1,0 +1,160 @@
+/* =========================================================
+   Crypto dashboard — mobile-first styles
+   ========================================================= */
+
+/* ---------- page ---------- */
+[data-testid="stAppViewContainer"] {
+    background: radial-gradient(circle at top left, #1a1a2e, #0f172a 70%);
+    color: #e5e7eb;
+}
+
+/* Chrome we don't need on a phone (sidebar is no longer used) */
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"],
+footer {
+    display: none !important;
+}
+
+[data-testid="stMainBlockContainer"],
+.main .block-container,
+.block-container {
+    max-width: 1100px;
+    padding: 1rem 1rem 3rem !important;
+}
+
+h1 {
+    font-size: clamp(1.4rem, 5.5vw, 2.2rem) !important;
+    font-weight: 700;
+    color: #f9fafb;
+    padding: 0 0 0.75rem 0 !important;
+    letter-spacing: 0.2px;
+}
+p, span, label { color: #d1d5db; }
+
+/* ---------- columns: NEVER stack (keeps 3 coin cards in one row on phones) ---------- */
+[data-testid="stHorizontalBlock"] {
+    flex-wrap: nowrap !important;
+    gap: 0.6rem !important;
+}
+[data-testid="stColumn"],
+[data-testid="column"] {
+    min-width: 0 !important;
+    width: auto !important;
+    flex: 1 1 0 !important;
+    padding: 0 !important;
+}
+
+/* ---------- coin cards (each card is a real st.button; logo comes from cards.py) ---------- */
+[class*="st-key-coin_"] {
+    width: 100%;
+}
+[class*="st-key-coin_"] button {
+    width: 100% !important;
+    height: 96px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 0 12px 0 !important;
+    background-color: rgba(255,255,255,0.05);
+    background-repeat: no-repeat;
+    background-position: center 14px;
+    background-size: 36px 36px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    transition: border-color .15s, box-shadow .15s;
+}
+[class*="st-key-coin_"] button p {
+    font-size: 0.85rem;
+    color: #d1d5db;
+    white-space: nowrap;
+    margin: 0;
+}
+@media (hover: hover) {
+    [class*="st-key-coin_"] button:hover { border-color: #16c784; }
+}
+[class*="st-key-coin_"] button:focus:not(:active) { border-color: #16c784; }
+
+/* ---------- price header ---------- */
+.price-hero { margin: 1rem 0 0.25rem; padding: 0 4px; }
+.price-hero-name {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.95rem; color: #9ca3af;
+}
+.hero-logo { width: 22px; height: 22px; object-fit: contain; }
+.price-hero-value {
+    font-size: clamp(2rem, 9vw, 3rem);
+    font-weight: 700;
+    color: #f9fafb;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+.price-hero-change { font-size: 1rem; font-weight: 600; }
+.price-hero-change span { color: #6b7280; font-weight: 400; margin-left: 4px; }
+
+.metric-positive { color: #16c784; }
+.metric-negative { color: #ea3943; }
+
+/* ---------- chart ---------- */
+.st-key-chart_area { margin-top: 0.25rem; }
+.st-key-chart_area iframe {
+    display: block;
+    width: 100%;
+    height: 420px;      /* phone */
+    border: 0;
+}
+@media (min-width: 900px) {
+    .st-key-chart_area iframe { height: 520px !important; }
+}
+
+/* time-range pills */
+.st-key-range_pills { align-items: center; margin-bottom: 0.5rem; }
+.st-key-range_pills [data-testid="stButtonGroup"] {
+    width: 100%;
+    justify-content: center;
+}
+.st-key-range_pills button { min-width: 3.4rem; min-height: 2.4rem; }
+
+/* ---------- stats cards ---------- */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0.75rem 0 1rem;
+}
+.metric-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.metric-title { font-size: 0.75rem; color: #9ca3af; letter-spacing: 0.4px; }
+.metric-value {
+    font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+    font-weight: 600;
+    color: #f9fafb;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- error box ---------- */
+.error-box {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    text-align: center;
+    color: white;
+}
+
+/* ---------- small phones ---------- */
+@media (max-width: 480px) {
+    [class*="st-key-coin_"] button { height: 84px; background-size: 30px 30px; }
+    [class*="st-key-coin_"] button p { font-size: 0.78rem; }
+}

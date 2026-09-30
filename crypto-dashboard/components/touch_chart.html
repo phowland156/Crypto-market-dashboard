@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  :root { --accent: __COLOR__; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #e5e7eb; -webkit-user-select: none; user-select: none; }
+  #wrap { height: 100%; display: flex; flex-direction: column; }
+
+  /* readout row above the chart (fixed height so nothing jumps while scrubbing) */
+  #readout { height: 52px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 4px 6px; gap: 12px; }
+  #main { font-size: 1.35rem; font-weight: 650; letter-spacing: -0.01em; color: #f9fafb;
+    font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #sub { font-size: 0.85rem; color: #9ca3af; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .up { color: #16c784; } .down { color: #ea3943; }
+
+  #stage { position: relative; flex: 1; min-height: 0; touch-action: none; cursor: crosshair; }
+  #chart { position: absolute; inset: 0; }
+  #overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  #vline { position: absolute; top: 0; left: 0; width: 1px; background: rgba(255,255,255,0.35); opacity: 0; }
+  #dot, #ring { position: absolute; left: 0; top: 0; border-radius: 50%; opacity: 0; }
+  #dot { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--accent);
+    border: 2px solid #0f172a; box-shadow: 0 0 0 1px var(--accent); }
+  #ring { width: 28px; height: 28px; margin: -14px 0 0 -14px; background: var(--accent); }
+  #ring.pulse { animation: pulse 1.8s ease-out infinite; }
+  #ring.still { opacity: 0.22; }
+  @keyframes pulse { 0% { transform: var(--pos) scale(0.4); opacity: 0.45; }
+                     100% { transform: var(--pos) scale(1.4); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #ring.pulse { animation: none; opacity: 0.2; } }
+
+  #reset { position: absolute; top: 8px; left: 8px; padding: 6px 12px; font-size: 0.8rem;
+    color: #e5e7eb; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px; display: none; cursor: pointer; touch-action: manipulation; }
+  #hint { height: 22px; text-align: center; font-size: 0.72rem; color: #6b7280; padding-top: 4px; transition: opacity .6s; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="readout"><div id="main"></div><div id="sub"></div></div>
+  <div id="stage">
+    <div id="chart"></div>
+    <div id="overlay"><div id="vline"></div><div id="ring"></div><div id="dot"></div></div>
+    <button id="reset" type="button">Reset zoom</button>
+  </div>
+  <div id="hint">Touch and drag to trace the price · pinch to zoom · two fingers to pan</div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+(function () {
+  var DATA = __PAYLOAD__;
+  var COLOR = DATA.color;
+  var T = DATA.t, P = DATA.p, N = T.length;
+
+  // Plotly draws date axes in UTC. Shift each timestamp so ticks show the viewer's local time.
+  var X = T.map(function (t) { return t - new Date(t).getTimezoneOffset() * 60000; });
+  var X0 = X[0], X1 = X[N - 1], FULL = Math.max(X1 - X0, 1);
+
+  var steps = [];
+  for (var i = 1; i < N; i++) steps.push(X[i] - X[i - 1]);
+  steps.sort(function (a, b) { return a - b; });
+  var STEP = steps.length ? steps[Math.floor(steps.length / 2)] : 60000;
+  var MIN_SPAN = Math.min(FULL, Math.max(STEP * 6, 20 * 60000));
+  var SHOW_TIME = STEP < 12 * 3600 * 1000;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var chartEl = $('chart'), stage = $('stage'), mainEl = $('main'), subEl = $('sub');
+  var vline = $('vline'), dot = $('dot'), ring = $('ring'), resetBtn = $('reset'), hint = $('hint');
+
+  var MARGIN = { l: 0, r: 0, t: 6, b: 24 };
+
+  // ---------- helpers ----------
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  // First index with X[i] >= x
+  function lowerBound(x) {
+    var lo = 0, hi = N;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (X[mid] < x) lo = mid + 1; else hi = mid; }
+    return lo;
+  }
+  // Price on the line at x-position (linear interpolation between points)
+  function valueAt(x) {
+    if (x <= X0) return { i: 0, x: X[0], y: P[0], t: T[0] };
+    if (x >= X1) return { i: N - 1, x: X[N - 1], y: P[N - 1], t: T[N - 1] };
+    var j = lowerBound(x), a = j - 1, f = (x - X[a]) / (X[j] - X[a]);
+    return { i: f < 0.5 ? a : j, x: x, y: P[a] + (P[j] - P[a]) * f, t: T[a] + (T[j] - T[a]) * f };
+  }
+  function fmtPrice(p) {
+    var a = Math.abs(p);
+    var d = a >= 1 ? 2 : a >= 0.01 ? 4 : 6;
+    return '$' + p.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  var dtDate = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  var dtFull = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  function fmtTime(ms) { return (SHOW_TIME ? dtFull : dtDate).format(new Date(ms)); }
+  function pct(a, b) { return a ? ((b - a) / a) * 100 : 0; }
+  function deltaHtml(a, b) {
+    var c = pct(a, b), up = c >= 0;
+    return '<span class="' + (up ? 'up' : 'down') + '">' + (up ? '▲' : '▼') + ' ' + Math.abs(c).toFixed(2) + '%</span>';
+  }
+
+  // ---------- view state ----------
+  var view = { a: X0, b: X1 };            // visible x-range (set directly by gestures)
+  var yCur = null, yTgt = null;           // y-range: current (animated) and target
+  var lastTickFmt = null, lastYFmt = null, raf = 0;
+
+  function yRangeFor(a, b) {
+    var lo = Math.max(0, lowerBound(a) - 1), hi = Math.min(N - 1, lowerBound(b));
+    var mn = Infinity, mx = -Infinity;
+    for (var i = lo; i <= hi; i++) { if (P[i] < mn) mn = P[i]; if (P[i] > mx) mx = P[i]; }
+    var pad = (mx - mn) * 0.12 || Math.abs(mx) * 0.005 || 1;
+    return [mn - pad, mx + pad];
+  }
+  function xTickFormat(span) {
+    var day = 86400000;
+    return span <= 2 * day ? '%H:%M' : span <= 90 * day ? '%b %d' : "%b '%y";
+  }
+  function yTickFormat(span) { return span >= 200 ? ',.0f' : span >= 2 ? ',.2f' : ',.4f'; }
+
+  var layout = {
+    autosize: true, dragmode: false, showlegend: false, hovermode: false,
+    margin: { l: MARGIN.l, r: MARGIN.r, t: MARGIN.t, b: MARGIN.b },
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#9ca3af', size: 11 },
+    xaxis: { type: 'date', range: [view.a, view.b], fixedrange: true, showgrid: false, zeroline: false,
+             showline: false, nticks: 4, ticks: '', tickfont: { size: 11, color: '#6b7280' }, automargin: false },
+    yaxis: { range: [0, 1], fixedrange: true, side: 'right', ticklabelposition: 'inside', showgrid: true,
+             gridcolor: 'rgba(255,255,255,0.06)', zeroline: false, showline: false, nticks: 4, tickprefix: '$',
+             tickfont: { size: 11, color: '#6b7280' }, automargin: false }
+  };
+  var trace = { type: 'scatter', mode: 'lines', x: X, y: P, hoverinfo: 'skip',
+                line: { color: COLOR, width: 2.5 } };
+
+  function plotSize() {
+    var r = chartEl.getBoundingClientRect();
+    return { w: r.width, h: r.height, pw: r.width - MARGIN.l - MARGIN.r, ph: r.height - MARGIN.t - MARGIN.b };
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    raf = 0;
+    var upd = {}, again = false;
+    if (yTgt) {
+      if (!yCur) yCur = yTgt.slice();
+      var span = Math.max(yTgt[1] - yTgt[0], 1e-9);
+      yCur[0] += (yTgt[0] - yCur[0]) * 0.35;
+      yCur[1] += (yTgt[1] - yCur[1]) * 0.35;
+      if (Math.abs(yTgt[0] - yCur[0]) > span * 0.002 || Math.abs(yTgt[1] - yCur[1]) > span * 0.002) again = true;
+      else { yCur[0] = yTgt[0]; yCur[1] = yTgt[1]; }
+      upd['yaxis.range'] = [yCur[0], yCur[1]];
+      var yf = yTickFormat(yCur[1] - yCur[0]);
+      if (yf !== lastYFmt) { upd['yaxis.tickformat'] = yf; lastYFmt = yf; }
+    }
+    upd['xaxis.range'] = [view.a, view.b];
+    var xf = xTickFormat(view.b - view.a);
+    if (xf !== lastTickFmt) { upd['xaxis.tickformat'] = xf; lastTickFmt = xf; }
+    Plotly.relayout(chartEl, upd);
+    placeMarkers();
+    if (again) schedule();
+  }
+  function schedule() { if (!raf) raf = requestAnimationFrame(render); }
+
+  function setView(a, b) {
+    var span = clamp(b - a, MIN_SPAN, FULL);
+    a = clamp(a, X0, X1 - span);
+    view.a = a; view.b = a + span;
+    yTgt = yRangeFor(view.a, view.b);
+    resetBtn.style.display = (span < FULL * 0.999) ? 'block' : 'none';
+    schedule();
+  }
+
+  // ---------- dot / crosshair ----------
+  var scrub = null; // {x} while the user is tracing
+  function px(x) { var s = plotSize(); return MARGIN.l + ((x - view.a) / (view.b - view.a)) * s.pw; }
+  function py(y) {
+    var s = plotSize(), r = yCur || yTgt || [0, 1];
+    return MARGIN.t + (1 - (y - r[0]) / (r[1] - r[0])) * s.ph;
+  }
+  function placeDot(pt, active) {
+    var x = px(pt.x), y = py(pt.y);
+    if (x < -4 || x > plotSize().w + 4) { dot.style.opacity = 0; ring.style.opacity = 0; ring.classList.remove('pulse', 'still'); return; }
+    var tr = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+    dot.style.transform = tr; ring.style.transform = tr; ring.style.setProperty('--pos', tr);
+    dot.style.opacity = 1;
+    ring.style.opacity = '';
+    ring.classList.toggle('still', active);
+    ring.classList.toggle('pulse', !active);
+  }
+  function placeMarkers() {
+    var s = plotSize();
+    if (scrub) {
+      var pt = valueAt(clamp(scrub.x, view.a, view.b));
+      vline.style.height = (s.h - MARGIN.b - MARGIN.t) + 'px';
+      vline.style.transform = 'translate(' + px(pt.x).toFixed(1) + 'px,' + MARGIN.t + 'px)';
+      vline.style.opacity = 1;
+      placeDot(pt, true);
+    } else {
+      vline.style.opacity = 0;
+      placeDot({ x: X1, y: P[N - 1] }, false);   // live dot on the latest price
+    }
+  }
+
+  function updateReadout() {
+    if (scrub) {
+      var pt = valueAt(clamp(scrub.x, view.a, view.b));
+      var startIdx = Math.min(N - 1, lowerBound(view.a));
+      mainEl.textContent = fmtPrice(pt.y);
+      subEl.innerHTML = deltaHtml(P[startIdx], pt.y) + '<br>' + fmtTime(pt.t);
+    } else {
+      var first = P[Math.min(N - 1, lowerBound(view.a))];
+      mainEl.innerHTML = deltaHtml(first, P[N - 1]);
+      subEl.textContent = DATA.label;
+    }
+  }
+
+  function dismissHint() { hint.style.opacity = 0; }
+
+  function scrubTo(clientX) {
+    var r = chartEl.getBoundingClientRect();
+    var frac = clamp((clientX - r.left - MARGIN.l) / Math.max(1, r.width - MARGIN.l - MARGIN.r), 0, 1);
+    scrub = { x: view.a + frac * (view.b - view.a) };
+    updateReadout(); placeMarkers();
+  }
+  function endScrub() { scrub = null; updateReadout(); placeMarkers(); }
+
+  // ---------- gestures ----------
+  var ptrs = new Map();      // pointerId -> {x, y}
+  var pinch = null;          // active two-finger gesture
+  var locked = false;        // after a pinch, ignore the remaining finger until all lift
+  var drag = null;           // desktop click-drag pan
+  var lastTap = 0;
+
+  function relX(clientX) { return clientX - chartEl.getBoundingClientRect().left - MARGIN.l; }
+
+  function startPinch() {
+    var pts = Array.from(ptrs.values());
+    var dx = pts[0].x - pts[1].x, dy = pts[0].y - pts[1].y;
+    var mid = relX((pts[0].x + pts[1].x) / 2), pw = plotSize().pw;
+    pinch = { dist: Math.max(Math.hypot(dx, dy), 30), a: view.a, b: view.b,
+              tMid: view.a + (mid / pw) * (view.b - view.a) };
+    locked = true; scrub = null; updateReadout();
+  }
+  function movePinch() {
+    var pts = Array.from(ptrs.values());
+    var dist = Math.max(Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), 30);
+    var mid = relX((pts[0].x + pts[1].x) / 2), pw = plotSize().pw;
+    var span = clamp((pinch.b - pinch.a) * (pinch.dist / dist), MIN_SPAN, FULL);
+    var a = pinch.tMid - (mid / pw) * span;
+    setView(a, a + span);
+    updateReadout();
+  }
+
+  stage.addEventListener('pointerdown', function (e) {
+    if (e.target === resetBtn) return;
+    dismissHint();
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    if (ptrs.size === 2) { startPinch(); return; }
+    if (ptrs.size > 2 || locked) return;
+    if (e.pointerType === 'mouse') {
+      if (view.b - view.a < FULL * 0.999) drag = { x: e.clientX, a: view.a, b: view.b };
+      scrubTo(e.clientX);
+    } else {
+      scrubTo(e.clientX);
+    }
+  });
+
+  stage.addEventListener('pointermove', function (e) {
+    if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && ptrs.size >= 2) { movePinch(); return; }
+    if (locked) return;
+    if (drag && e.buttons === 1) {
+      var pw = plotSize().pw, dt = -((e.clientX - drag.x) / pw) * (drag.b - drag.a);
+      setView(drag.a + dt, drag.b + dt);
+      scrubTo(e.clientX);
+      return;
+    }
+    if (e.pointerType === 'mouse' || ptrs.has(e.pointerId)) scrubTo(e.clientX);
+  });
+
+  function release(e) {
+    var wasTouch = e.pointerType !== 'mouse';
+    ptrs.delete(e.pointerId);
+    try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (ptrs.size < 2) pinch = null;
+    if (ptrs.size === 0) {
+      var wasLocked = locked;
+      locked = false; drag = null;
+      if (wasTouch) {
+        endScrub();
+        // double tap resets zoom (autoscale)
+        if (!wasLocked && e.type === 'pointerup') {
+          var now = Date.now();
+          if (now - lastTap < 320) { setView(X0, X1); updateReadout(); lastTap = 0; }
+          else lastTap = now;
+        }
+      }
+    }
+  }
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
+  stage.addEventListener('pointerleave', function (e) {
+    if (e.pointerType === 'mouse' && !drag) endScrub();
+  });
+
+  // desktop: wheel / trackpad-pinch zoom around the cursor, double-click reset
+  stage.addEventListener('wheel', function (e) {
+    e.preventDefault(); dismissHint();
+    var k = e.ctrlKey ? 0.01 : 0.0015;
+    var span = clamp((view.b - view.a) * Math.exp(e.deltaY * k), MIN_SPAN, FULL);
+    var pw = plotSize().pw, frac = clamp(relX(e.clientX) / pw, 0, 1);
+    var tAt = view.a + frac * (view.b - view.a);
+    var a = tAt - frac * span;
+    setView(a, a + span);
+    scrubTo(e.clientX);
+  }, { passive: false });
+  stage.addEventListener('dblclick', function () { setView(X0, X1); updateReadout(); });
+  resetBtn.addEventListener('click', function () { setView(X0, X1); updateReadout(); });
+  resetBtn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+
+  // ---------- boot ----------
+  yTgt = yRangeFor(view.a, view.b);
+  yCur = yTgt.slice();
+  layout.yaxis.range = yCur.slice();
+  layout.xaxis.tickformat = lastTickFmt = xTickFormat(FULL);
+  layout.yaxis.tickformat = lastYFmt = yTickFormat(yCur[1] - yCur[0]);
+
+  Plotly.newPlot(chartEl, [trace], layout, { staticPlot: true, displayModeBar: false, responsive: false })
+    .then(function () {
+      updateReadout(); placeMarkers();
+      new ResizeObserver(function () { Plotly.Plots.resize(chartEl); placeMarkers(); }).observe(stage);
+    });
+})();
+</script>
+</body>
+</html>
