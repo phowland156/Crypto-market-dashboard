@@ -59,7 +59,7 @@ p, span, label { color: #d1d5db; }
     align-items: flex-end;
     justify-content: center;
     padding: 0 0 12px 0 !important;
-    background-color: rgba(255,255,255,0.05);
+    background-color: rgba(255,255,255,0.05) !important;
     background-repeat: no-repeat;
     background-position: center 14px;
     background-size: 36px 36px;
@@ -116,7 +116,49 @@ p, span, label { color: #d1d5db; }
     width: 100%;
     justify-content: center;
 }
-.st-key-range_pills button { min-width: 3.4rem; min-height: 2.4rem; }
+.st-key-range_pills button {
+    min-width: 3.4rem;
+    min-height: 2.4rem;
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+}
+.st-key-range_pills button p { color: #e5e7eb !important; }
+
+/* hover / focus: green instead of red */
+.st-key-range_pills button:hover,
+.st-key-range_pills button:focus {
+    background: rgba(22,199,132,0.18) !important;
+    border-color: #16c784 !important;
+}
+
+/* selected pill stays green */
+.st-key-range_pills button[data-testid*="Active"],
+.st-key-range_pills button[data-testid*="Active"]:hover,
+.st-key-range_pills button[data-testid*="Active"]:focus,
+.st-key-range_pills button[aria-pressed="true"],
+.st-key-range_pills button[aria-checked="true"] {
+    background: #16c784 !important;
+    border-color: #16c784 !important;
+}
+.st-key-range_pills button[data-testid*="Active"] p,
+.st-key-range_pills button[aria-pressed="true"] p,
+.st-key-range_pills button[aria-checked="true"] p {
+    color: #0f172a !important;
+    font-weight: 600;
+}
+.st-key-range_pills button {
+    min-width: 3.4rem;
+    min-height: 2.4rem;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.st-key-range_pills button p { color: #e5e7eb; }
+.st-key-range_pills button[aria-pressed="true"],
+.st-key-range_pills button[aria-checked="true"] {
+    background: #16c784;
+}
+.st-key-range_pills button[aria-pressed="true"] p,
+.st-key-range_pills button[aria-checked="true"] p { color: #0f172a; }
 
 /* ---------- stats cards ---------- */
 .metric-grid {
