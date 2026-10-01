@@ -9,7 +9,7 @@ from components.portfolio import render_portfolio
 from utils.helpers import load_css
 from pathlib import Path
 # ...
-load_css(Path(__file__).parent / "static" / "css" / "style.css")
+load_css("static/css/style.css")
 
 COINS = {
     "Bitcoin": {

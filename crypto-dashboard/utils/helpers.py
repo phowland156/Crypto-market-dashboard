@@ -1,8 +1,11 @@
 import streamlit as st
+from pathlib import Path
 
 
 def load_css(file_name):
-    with open(file_name, encoding="utf-8") as f:
+    base_dir = Path(__file__).resolve().parent.parent
+    css_path = base_dir / file_name
+    with open(css_path, encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
